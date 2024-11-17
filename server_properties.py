@@ -26,3 +26,4 @@ MAIL_USERNAME = get_env_variable('MAIL_USERNAME')  # Replace with your method of
 MAIL_PASSWORD = get_env_variable('MAIL_PASSWORD')  # Replace with your method of securely getting the password
 MAIL_USE_TLS = True
 MAIL_USE_AUTH = True
+
