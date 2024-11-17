@@ -36,7 +36,7 @@ async def signup(user: SignupModel):
 async def login(user: LoginModel):
     result = user_service.login(user.email, user.password)
     if result.get("success"):
-        return {"message": "Login successful", "token": result.get("token")}
+        return {"message": "Login successful", "result": result.get('result')}
     else:
         raise HTTPException(status_code=401, detail=result.get("error"))
 
