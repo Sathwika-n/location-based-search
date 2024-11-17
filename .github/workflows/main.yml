@@ -1,0 +1,27 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 'Checkout code'
+      uses: actions/checkout@v3
+
+    - name: 'Login to Azure' #login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}  # JSON object with client-id, client-secret, tenant-id, subscription-id
+
+    - name: 'Run deployment'
+      run: |
+        az group create --name ${{ secrets.AZURE_RESOURCE_GROUP }} --location "Central US"
+        az deployment group create --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --template-file templates/myTemplate.json
+
+permissions:
+  id-token: write
