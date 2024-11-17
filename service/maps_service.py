@@ -255,3 +255,16 @@ def fetch_reviews_by_restaurant(restaurant_id):
     else:
         log.info(f"No reviews found for restaurant {restaurant_id}.")
         return []
+    
+def reverse_geocode(latitude, longitude,api_key):
+    url = f"https://maps.googleapis.com/maps/api/geocode/json?latlng={latitude},{longitude}&key={api_key}"
+    log.info(f"url -> {url}")
+    response = requests.get(url,verify=False)
+    if response.status_code == 200:
+        result = response.json().get('results', [])
+        if result:
+            return result[0].get('formatted_address')
+        else:
+            raise Exception("Coordinates not found.")
+    else:
+        raise Exception(f"Error in reverse geocoding: {response.content}")

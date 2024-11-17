@@ -1,5 +1,7 @@
 import datetime
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse
+from flask import jsonify, request
 from pydantic import BaseModel
 from service import maps_service
 import server_properties
@@ -10,6 +12,7 @@ from datetime import timedelta
 log = logger.get_logger()
 
 api_key = server_properties.GOOGLE_API_KEY
+log.info(f"api key loaded successfully")
 maps_controller = APIRouter(prefix="/maps")
 
 # Request body models
@@ -148,4 +151,23 @@ async def get_user_reviews(query: ReviewQueryRequest):
         log.error(f"Error fetching reviews: {str(e)}")
         raise HTTPException(status_code=500, detail="Error fetching reviews from database.")
     
+@maps_controller.post("/reverse_geocode")
+async def reverse_geocode(request: Request):
+    log.info("Performing reverse geocoding...")
 
+    try:
+        data = await request.json()
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
+
+        if not latitude or not longitude:
+            raise HTTPException(status_code=400, detail="Latitude and longitude are required.")
+
+        # Perform reverse geocoding with your maps service
+        location = maps_service.reverse_geocode(latitude, longitude,api_key)
+        
+        # Return JSON response
+        return JSONResponse(content={"location": location})
+    except Exception as e:
+        log.error(f"Error in reverse geocoding: {e}")
+        raise HTTPException(status_code=500, detail="Failed to find location for the specified coordinates.")
