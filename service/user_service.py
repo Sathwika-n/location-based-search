@@ -57,6 +57,7 @@ class UserService:
         Handle user signup.
         Checks if the email already exists, hashes the password, and stores the user data in Elasticsearch.
         """
+        email = email.lower()
         # Check if the user already exists based on email
         query = {
             "query": {
@@ -112,7 +113,7 @@ class UserService:
         res = self.es.search(index=self.index, body=query)
 
         if res['hits']['total']['value'] == 0:
-            return {"success": False, "error": "User not found"}
+            return {"success": False, "error": "User Doesn't Exist"}
 
         user_data = res['hits']['hits'][0]['_source']
 
@@ -121,7 +122,7 @@ class UserService:
             token = create_access_token(user_data["user_id"])
             return {"success": True, "user_id": user_data["user_id"], "token": token}
 
-        return {"success": False, "error": "Invalid credentials"}
+        return {"success": False, "error": "Invalid Credentials"}
 
     def update_user(self, user_id: str, username: str = None, password: str = None):
         """
