@@ -53,7 +53,7 @@ async def nearby_restaurants(request: Request, data: LocationRequest):
     restaurants = maps_service.find_nearby_restaurants(api_key, data.location, data.radius, data.keyword)
     
     if restaurants:
-        return {"restaurants": restaurants}
+        return restaurants
     else:
         return {"message": "No restaurants found."}
 
