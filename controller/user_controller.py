@@ -22,7 +22,7 @@ class UpdateModel(BaseModel):
     password: Optional[str] = None
 
 class UpdatePasswordModel(BaseModel):
-    email: str
+    user_id : str
     old_password: str
     new_password: str
 
@@ -53,9 +53,9 @@ async def update(user: UpdateModel, user_id: str):
     else:
         raise HTTPException(status_code=400, detail=result.get("error"))
     
-@user_controller.put("/update-password")
+@user_controller.put("/change-password")
 async def update_password(request: UpdatePasswordModel):
-    result = user_service.update_password(request.email, request.old_password, request.new_password)
+    result = user_service.update_password(request.user_id, request.old_password, request.new_password)
     if result.get("success"):
         return {"message": "Password updated successfully. A confirmation email has been sent."}
     else:

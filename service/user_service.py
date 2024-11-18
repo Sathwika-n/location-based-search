@@ -169,14 +169,13 @@ class UserService:
 
         return {"success": True}
     
-    def update_password(self, email: str, old_password: str, new_password: str):
-        email = email.lower()
+    def update_password(self, user_id: str, old_password: str, new_password: str):
 
         # Search for the user by email
         query = {
             "query": {
                 "term": {
-                    "email": email
+                    "user_id": user_id
                 }
             }
         }
@@ -192,6 +191,7 @@ class UserService:
         if not verify_password(user_data['password'], old_password):
             return {"success": False, "error": "Old password is incorrect"}
 
+        email = user_data['email']
         # Hash the new password
         hashed_password = hash_password(new_password)
 
