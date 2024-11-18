@@ -273,9 +273,27 @@ def fetch_reviews_by_restaurant(restaurant_id):
         log.info(f"No reviews found for restaurant {restaurant_id}.")
         return []
     
+def fetch_reviews_by_user(user_id):
+    log.info("fetching user reviews...")
+    index_name = "user_reviews"
+    query = {
+        "query": {
+            "match": {
+                "user_id": user_id
+            }
+        }
+    }
+    response = es.search(index=index_name, body=query)
+    if response['hits']['total']['value'] > 0:
+        reviews = [hit['_source'] for hit in response['hits']['hits']]
+        log.info(f"Found {len(reviews)} reviews for user {user_id}.")
+        return reviews
+    else:
+        log.info(f"No reviews given by user {user_id}.")
+        return []
+    
 def reverse_geocode(latitude, longitude,api_key):
     url = f"https://maps.googleapis.com/maps/api/geocode/json?latlng={latitude},{longitude}&key={api_key}"
-    log.info(f"url -> {url}")
     response = requests.get(url,verify=False)
     if response.status_code == 200:
         result = response.json().get('results', [])

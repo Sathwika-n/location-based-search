@@ -1,5 +1,6 @@
 import datetime
-from fastapi import APIRouter, HTTPException, Request
+from typing import Optional
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from flask import jsonify, request
 from pydantic import BaseModel
@@ -42,9 +43,9 @@ class ReviewRequest(BaseModel):
     rating: float
     review_text: str
 
-# Request body model for querying user reviews
 class ReviewQueryRequest(BaseModel):
-    restaurant_id: str
+    restaurant_id: Optional[str] = None
+    user_id: Optional[str] = None
 
 @maps_controller.post("/nearby_restaurants")
 async def nearby_restaurants(request: Request, data: LocationRequest):
@@ -130,26 +131,54 @@ async def add_review(data: ReviewRequest):
         log.error(f"Error storing review: {str(e)}")
         raise HTTPException(status_code=500, detail="Error storing review in database.")
     
-@maps_controller.get("/user_reviews")
-async def get_user_reviews(query: ReviewQueryRequest):
+@maps_controller.get("/user_reviews_by_restaurant_id")
+async def get_user_reviews(
+    restaurant_id: str = Query(None, description="The restaurant ID to fetch reviews for"),
+    user_id: Optional[str] = Query(None, description="The user ID to fetch reviews by"),
+):
     log.info("Fetching user reviews...")
 
     # Validate input: at least one of user_id or restaurant_id should be provided
-    if not query.restaurant_id:
+    if not restaurant_id and not user_id:
         raise HTTPException(status_code=400, detail="Either user_id or restaurant_id is required.")
 
     # Fetch user reviews based on user_id or restaurant_id
     try:
-        if query.restaurant_id:
-            reviews = maps_service.fetch_reviews_by_restaurant(query.restaurant_id)
-
+        if restaurant_id:
+            reviews = maps_service.fetch_reviews_by_restaurant(restaurant_id)
         if reviews:
             return {"reviews": reviews}
+            
         else:
             return {"message": "No reviews found."}
     except Exception as e:
         log.error(f"Error fetching reviews: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error fetching reviews from database.")
+        raise HTTPException(status_code=500, detail="An error occurred while fetching reviews.")
+    
+@maps_controller.get("/user_reviews_by_user_id")
+async def get_user_reviews(
+    restaurant_id: str = Query(None, description="The restaurant ID to fetch reviews for"),
+    user_id: Optional[str] = Query(None, description="The user ID to fetch reviews by"),
+):
+    log.info("Fetching user reviews...")
+
+    # Validate input: at least one of user_id or restaurant_id should be provided
+    if not restaurant_id and not user_id:
+        raise HTTPException(status_code=400, detail="Either user_id or restaurant_id is required.")
+
+    # Fetch user reviews based on user_id or restaurant_id
+    try:
+        if user_id:
+            log.info("call fetch reviews by user...")
+            reviews = maps_service.fetch_reviews_by_user(user_id)
+        if reviews:
+            return {"reviews": reviews}
+            
+        else:
+            return {"message": "No reviews found."}
+    except Exception as e:
+        log.error(f"Error fetching reviews: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred while fetching reviews.")
     
 @maps_controller.post("/reverse_geocode")
 async def reverse_geocode(request: Request):
