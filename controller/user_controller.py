@@ -21,6 +21,11 @@ class UpdateModel(BaseModel):
     username: Optional[str] = None
     password: Optional[str] = None
 
+class UpdatePasswordModel(BaseModel):
+    email: str
+    old_password: str
+    new_password: str
+
 # Dependency to use the service
 user_service = UserService()
 
@@ -45,5 +50,13 @@ async def update(user: UpdateModel, user_id: str):
     result = user_service.update_user(user_id, user.username, user.password)
     if result.get("success"):
         return {"message": "User updated successfully"}
+    else:
+        raise HTTPException(status_code=400, detail=result.get("error"))
+    
+@user_controller.put("/update-password")
+async def update_password(request: UpdatePasswordModel):
+    result = user_service.update_password(request.email, request.old_password, request.new_password)
+    if result.get("success"):
+        return {"message": "Password updated successfully. A confirmation email has been sent."}
     else:
         raise HTTPException(status_code=400, detail=result.get("error"))

@@ -168,3 +168,44 @@ class UserService:
         update_res = self.es.update(index=self.index, id=res['hits']['hits'][0]['_id'], body=update_query)
 
         return {"success": True}
+    
+    def update_password(self, email: str, old_password: str, new_password: str):
+        email = email.lower()
+
+        # Search for the user by email
+        query = {
+            "query": {
+                "term": {
+                    "email": email
+                }
+            }
+        }
+
+        res = self.es.search(index=self.index, body=query)
+
+        if res['hits']['total']['value'] == 0:
+            return {"success": False, "error": "User not found"}
+
+        user_data = res['hits']['hits'][0]['_source']
+
+        # Verify the old password
+        if not verify_password(user_data['password'], old_password):
+            return {"success": False, "error": "Old password is incorrect"}
+
+        # Hash the new password
+        hashed_password = hash_password(new_password)
+
+        # Prepare the update data
+        update_data = {
+            "password": hashed_password
+        }
+
+        # Update the document in Elasticsearch
+        self.es.update(index=self.index, id=res['hits']['hits'][0]['_id'], body={"doc": update_data})
+
+        # Send a notification email
+        subject = "Your Password Has Been Changed Successfully"
+        body = f"Hello {user_data['username']},\n\nYour password has been updated successfully. If you did not request this change, please contact support immediately."
+        notification.send_notification(subject, body, email)
+
+        return {"success": True}
