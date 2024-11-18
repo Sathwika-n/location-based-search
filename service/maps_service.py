@@ -29,6 +29,15 @@ def get_lat_long(location):
     else:
         return None, None
 
+def get_photo_url(photo_reference, api_key, max_width=400):
+    """
+    Given a photo reference, return the URL of the photo.
+    max_width is the size of the photo to request.
+    """
+    base_url = "https://maps.googleapis.com/maps/api/place/photo"
+    photo_url = f"{base_url}?maxwidth={max_width}&photoreference={photo_reference}&key={api_key}"
+    return photo_url
+
 def find_nearby_restaurants(api_key, location, radius=5000, keyword='restaurant'):
     log.info("Inside find_nearby_restaurants")
 
@@ -66,6 +75,14 @@ def find_nearby_restaurants(api_key, location, radius=5000, keyword='restaurant'
                     'longitude': longitude,
                     'radius': radius
                 }
+
+                # Check if photos are available
+                if 'photos' in place:
+                    photo_reference = place['photos'][0].get('photo_reference')
+                    if photo_reference:
+                        photo_url = get_photo_url(photo_reference, api_key)
+                        restaurant_info['photo_url'] = photo_url
+
                 restaurants.append(restaurant_info)
 
             # Store the fetched restaurants in Elasticsearch for future use

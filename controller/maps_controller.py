@@ -58,7 +58,7 @@ async def nearby_restaurants(request: Request, data: LocationRequest):
     if restaurants:
         return restaurants
     else:
-        return {"message": "No restaurants found."}
+        return []
 
 @maps_controller.get("/restaurant_details/{restaurant_id}")
 async def restaurant_details(restaurant_id: str):
