@@ -141,7 +141,7 @@ async def get_user_reviews(query: ReviewQueryRequest):
     # Fetch user reviews based on user_id or restaurant_id
     try:
         if query.restaurant_id:
-            reviews = maps_service.fetch_reviews_given_by_users(query.restaurant_id)
+            reviews = maps_service.fetch_reviews_by_restaurant(query.restaurant_id)
 
         if reviews:
             return {"reviews": reviews}
