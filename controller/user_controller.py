@@ -26,6 +26,10 @@ class UpdatePasswordModel(BaseModel):
     old_password: str
     new_password: str
 
+class ForgotPasswordModel(BaseModel):
+    email: str
+
+
 # Dependency to use the service
 user_service = UserService()
 
@@ -60,3 +64,11 @@ async def update_password(request: UpdatePasswordModel):
         return {"message": "Password updated successfully. A confirmation email has been sent."}
     else:
         raise HTTPException(status_code=400, detail=result.get("error"))
+
+@user_controller.post("/forgot-password")
+async def forgot_password(request: ForgotPasswordModel):
+    result = user_service.forgot_password(request.email)
+    if result.get("success"):
+        return {"message": result.get("message")}
+    else:
+        raise HTTPException(status_code=404, detail=result.get("error"))

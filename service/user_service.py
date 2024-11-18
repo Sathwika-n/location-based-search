@@ -7,6 +7,8 @@ from elasticsearch import Elasticsearch
 import server_properties
 import logging
 from helper import notification
+import string
+import secrets
 
 log = logging.getLogger(__name__)
 
@@ -46,6 +48,18 @@ def create_access_token(user_id: str):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+def generate_random_password(length=12):
+    """
+    Generate a secure random password.
+    The default length is 12 characters, which can be adjusted as needed.
+    Excludes backslash (\) and forward slash (/) from the password.
+    """
+    # Define the allowed characters, excluding \ and /
+    characters = string.ascii_letters + string.digits + string.punctuation.replace('\\', '').replace('/', '')
+    
+    # Generate the random password
+    password = ''.join(secrets.choice(characters) for _ in range(length))
+    return password
 
 class UserService:
     def __init__(self):
@@ -209,3 +223,51 @@ class UserService:
         notification.send_notification(subject, body, email)
 
         return {"success": True}
+
+    def forgot_password(self, email: str):
+        """
+        Generate a temporary password, update the user's password in Elasticsearch,
+        and send the password via email.
+        """
+        email = email.lower()
+
+        # Check if the user exists based on email
+        query = {
+            "query": {
+                "term": {
+                    "email": email
+                }
+            }
+        }
+
+        res = self.es.search(index=self.index, body=query)
+
+        if res['hits']['total']['value'] == 0:
+            return {"success": False, "error": "User not found"}
+
+        user_data = res['hits']['hits'][0]['_source']
+        user_id = user_data['user_id']
+
+        # Generate a temporary password
+        temporary_password = generate_random_password()
+        hashed_password = hash_password(temporary_password)
+
+        # Update the password in Elasticsearch
+        update_data = {
+            "password": hashed_password
+        }
+        self.es.update(index=self.index, id=res['hits']['hits'][0]['_id'], body={"doc": update_data})
+
+        # Send an email with the new password
+        subject = "Your Temporary Password"
+        body = (f"Hello {user_data['username']},\n\n"
+                f"We've generated a temporary password for you:\n\n"
+                f"Temporary Password: {temporary_password}\n\n"
+                f"Please use this password to log in and change your password as soon as possible.\n\n"
+                f"User ID: {user_id}\n\n"
+                "If you did not request this change, please contact support immediately.")
+        notification.send_notification(subject, body, email)
+
+        return {"success": True, "message": "A temporary password has been sent to your email."}
+
+    
