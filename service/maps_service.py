@@ -283,6 +283,7 @@ def fetch_reviews_by_user(user_id):
             }
         }
     }
+    log.info(f"query -> {query}")
     response = es.search(index=index_name, body=query)
     if response['hits']['total']['value'] > 0:
         reviews = [hit['_source'] for hit in response['hits']['hits']]

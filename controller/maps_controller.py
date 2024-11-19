@@ -167,9 +167,9 @@ async def get_user_reviews(
         reviews = maps_service.get_reviews_with_restaurant_details_for_user_id(user_id, api_key)
 
         if reviews:
-            return {"reviews": reviews}
+            return reviews
         else:
-            return {"message": "No reviews found."}
+            return []
     except Exception as e:
         log.error(f"Error fetching reviews: {str(e)}")
         raise HTTPException(status_code=500, detail="An error occurred while fetching reviews.")
