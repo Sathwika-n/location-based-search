@@ -303,3 +303,79 @@ def reverse_geocode(latitude, longitude,api_key):
             raise Exception("Coordinates not found.")
     else:
         raise Exception(f"Error in reverse geocoding: {response.content}")
+    
+def get_reviews_with_restaurant_details(restaurant_id: str, api_key: str):
+    log.info(f"Fetching reviews and details for restaurant ID: {restaurant_id}")
+    
+    # Fetch reviews based on the restaurant ID
+    reviews = fetch_reviews_by_restaurant(restaurant_id)
+    
+    if reviews:
+        # Fetch restaurant details
+        restaurant_details = get_restaurant_details(api_key, restaurant_id)
+        
+        if restaurant_details:
+            # Extract relevant restaurant information
+            restaurant_name = restaurant_details.get('name')
+            restaurant_address = restaurant_details.get('formatted_address')
+            maps_url = restaurant_details.get('url')
+            
+            # Combine restaurant information with each review
+            enhanced_reviews = [
+                {
+                    "restaurant_name": restaurant_name,
+                    "restaurant_address": restaurant_address,
+                    "maps_url": maps_url,
+                    "review_text": review.get('review_text'),
+                    "rating": review.get('rating'),
+                    "created_at": review.get('created_at'),
+                    "user_id":review.get('user_id')
+                }
+                for review in reviews
+            ]
+            return enhanced_reviews
+        else:
+            log.warning(f"Restaurant details not found for ID: {restaurant_id}")
+            return []
+    else:
+        log.info(f"No reviews found for restaurant ID: {restaurant_id}")
+        return []
+
+def get_reviews_with_restaurant_details_for_user_id(user_id: str, api_key: str):
+    log.info(f"Fetching reviews for user ID: {user_id}")
+    
+    # Fetch reviews based on the user ID
+    reviews = fetch_reviews_by_user(user_id)
+    
+    if reviews:
+        # Get a unique list of restaurant IDs from the reviews
+        restaurant_ids = {review['restaurant_id'] for review in reviews}
+        enhanced_reviews = []
+
+        for restaurant_id in restaurant_ids:
+            # Fetch restaurant details
+            restaurant_details = get_restaurant_details(api_key, restaurant_id)
+            
+            if restaurant_details:
+                # Extract relevant restaurant information
+                restaurant_name = restaurant_details.get('name')
+                restaurant_address = restaurant_details.get('formatted_address')
+                maps_url = restaurant_details.get('url')
+                
+                # Combine restaurant information with each relevant review
+                for review in reviews:
+                    if review['restaurant_id'] == restaurant_id:
+                        enhanced_reviews.append({
+                            "restaurant_name": restaurant_name,
+                            "restaurant_address": restaurant_address,
+                            "maps_url": maps_url,
+                            "review_text": review.get('review_text'),
+                            "rating": review.get('rating'),
+                            "created_at": review.get('created_at'),
+                            "user_id": review.get('user_id')
+                        })
+                        
+        return enhanced_reviews
+    else:
+        log.info(f"No reviews found for user ID: {user_id}")
+        return []

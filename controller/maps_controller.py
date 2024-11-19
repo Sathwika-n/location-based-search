@@ -137,48 +137,43 @@ async def get_user_reviews(
     user_id: Optional[str] = Query(None, description="The user ID to fetch reviews by"),
 ):
     log.info("Fetching user reviews...")
-
+    
     # Validate input: at least one of user_id or restaurant_id should be provided
     if not restaurant_id and not user_id:
         raise HTTPException(status_code=400, detail="Either user_id or restaurant_id is required.")
-
-    # Fetch user reviews based on user_id or restaurant_id
+    
     try:
-        if restaurant_id:
-            reviews = maps_service.fetch_reviews_by_restaurant(restaurant_id)
-        if reviews:
-            return {"reviews": reviews}
-            
+        # old method 
+        #reviews = maps_service.fetch_reviews_by_restaurant(restaurant_id)
+        # Call the service function to get the reviews along with restaurant details
+        reviews_with_details = maps_service.get_reviews_with_restaurant_details(restaurant_id, api_key)
+        
+        if reviews_with_details:
+            return reviews_with_details
         else:
-            return {"message": "No reviews found."}
+            return []
     except Exception as e:
         log.error(f"Error fetching reviews: {str(e)}")
         raise HTTPException(status_code=500, detail="An error occurred while fetching reviews.")
     
 @maps_controller.get("/user_reviews_by_user_id")
 async def get_user_reviews(
-    restaurant_id: str = Query(None, description="The restaurant ID to fetch reviews for"),
-    user_id: Optional[str] = Query(None, description="The user ID to fetch reviews by"),
+    user_id: str = Query(..., description="The user ID to fetch reviews by")
 ):
     log.info("Fetching user reviews...")
 
-    # Validate input: at least one of user_id or restaurant_id should be provided
-    if not restaurant_id and not user_id:
-        raise HTTPException(status_code=400, detail="Either user_id or restaurant_id is required.")
-
-    # Fetch user reviews based on user_id or restaurant_id
     try:
-        if user_id:
-            log.info("call fetch reviews by user...")
-            reviews = maps_service.fetch_reviews_by_user(user_id)
+        # Call the service function to get reviews with restaurant details
+        reviews = maps_service.get_reviews_with_restaurant_details_for_user_id(user_id, api_key)
+
         if reviews:
             return {"reviews": reviews}
-            
         else:
             return {"message": "No reviews found."}
     except Exception as e:
         log.error(f"Error fetching reviews: {str(e)}")
         raise HTTPException(status_code=500, detail="An error occurred while fetching reviews.")
+
     
 @maps_controller.post("/reverse_geocode")
 async def reverse_geocode(request: Request):
