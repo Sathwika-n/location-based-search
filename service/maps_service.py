@@ -243,7 +243,6 @@ def store_user_favorite(favorite_data):
     response = es.index(index=index_name, document=favorite_data)
     return response
 
-# Fetch user favorites from Elasticsearch
 def fetch_user_favorites(user_id):
     index_name = "user_favorites"
     query = {
@@ -253,8 +252,33 @@ def fetch_user_favorites(user_id):
             }
         }
     }
+    
+    # Fetch user favorites from Elasticsearch
     response = es.search(index=index_name, body=query)
-    return response['hits']['hits']
+    
+    # List to store restaurant details
+    restaurant_details_list = []
+    
+    # Loop through the favorites and fetch restaurant details
+    for hit in response['hits']['hits']:
+        restaurant_id = hit['_source']['restaurant_id']
+        
+        # Fetch restaurant details using the provided function
+        details = get_restaurant_details(api_key, restaurant_id)
+        
+        if details:
+            restaurant_info = {
+                "name": details.get("name"),
+                "location": extract_locality_from_adr_address(details.get("adr_address")),
+                "map_url": details.get("url"),
+                "rating": details.get("rating"),
+                "image": get_photo_url(details.get("photos")[0]['photo_reference'], api_key) if details.get("photos") else None
+            }
+            
+            restaurant_details_list.append(restaurant_info)
+    
+    return restaurant_details_list
+
 
 def fetch_reviews_by_restaurant(restaurant_id):
     index_name = "user_reviews"

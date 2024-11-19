@@ -99,7 +99,10 @@ async def add_favorite(data: FavoriteRequest):
 async def user_favorites(user_id: str):
     log.info(f"Fetching favorites for user ID: {user_id}...")
     favorites = maps_service.fetch_user_favorites(user_id)
-    return {'favorites': favorites}
+    if favorites:
+        return favorites
+    else:
+        []
 
 @maps_controller.post("/add_review")
 async def add_review(data: ReviewRequest):
