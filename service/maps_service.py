@@ -5,6 +5,7 @@ from elasticsearch.helpers import bulk
 import server_properties
 import logger
 from helper import utility
+from bs4 import BeautifulSoup
 
 log = logger.get_logger()
 
@@ -318,19 +319,21 @@ def get_reviews_with_restaurant_details(restaurant_id: str, api_key: str):
         if restaurant_details:
             # Extract relevant restaurant information
             restaurant_name = restaurant_details.get('name')
-            restaurant_address = restaurant_details.get('formatted_address')
+            #restaurant_address = restaurant_details.get('formatted_address')
+            locality = extract_locality_from_adr_address(restaurant_details.get('adr_address'))
             maps_url = restaurant_details.get('url')
             
             # Combine restaurant information with each review
             enhanced_reviews = [
                 {
                     "restaurant_name": restaurant_name,
-                    "restaurant_address": restaurant_address,
+                    "restaurant_address": locality,
                     "maps_url": maps_url,
                     "review_text": review.get('review_text'),
                     "rating": review.get('rating'),
                     "created_at": review.get('created_at'),
-                    "user_id":review.get('user_id')
+                    "user_id":review.get('user_id'),
+                    #"locality": locality
                 }
                 for review in reviews
             ]
@@ -360,7 +363,7 @@ def get_reviews_with_restaurant_details_for_user_id(user_id: str, api_key: str):
             if restaurant_details:
                 # Extract relevant restaurant information
                 restaurant_name = restaurant_details.get('name')
-                restaurant_address = restaurant_details.get('formatted_address')
+                restaurant_address = extract_locality_from_adr_address(restaurant_details.get('adr_address'))
                 maps_url = restaurant_details.get('url')
                 
                 # Combine restaurant information with each relevant review
@@ -380,3 +383,12 @@ def get_reviews_with_restaurant_details_for_user_id(user_id: str, api_key: str):
     else:
         log.info(f"No reviews found for user ID: {user_id}")
         return []
+
+
+def extract_locality_from_adr_address(adr_address):
+    if adr_address:
+        soup = BeautifulSoup(adr_address, 'html.parser')
+        print("soup ->",soup)
+        locality = soup.find('span', {'class': 'locality'})
+        return locality.text if locality else None
+    return None

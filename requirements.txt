@@ -10,3 +10,4 @@ elasticsearch
 bcrypt
 PyJWT
 gunicorn
+beautifulsoup4
