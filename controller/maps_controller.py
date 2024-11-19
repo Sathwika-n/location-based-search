@@ -93,16 +93,17 @@ async def add_favorite(data: FavoriteRequest):
     # Store favorite in Elasticsearch
     response = maps_service.store_user_favorite(favorite_data)
     
-    return {"message": "Favorite added successfully", "response": response}
+    return {"message": "Favorite added successfully"}
 
 @maps_controller.get("/user_favorites/{user_id}")
 async def user_favorites(user_id: str):
     log.info(f"Fetching favorites for user ID: {user_id}...")
     favorites = maps_service.fetch_user_favorites(user_id)
+    print("fav ",favorites)
+    if favorites==0:
+        return []
     if favorites:
         return favorites
-    else:
-        []
 
 @maps_controller.post("/add_review")
 async def add_review(data: ReviewRequest):
@@ -198,3 +199,20 @@ async def reverse_geocode(request: Request):
     except Exception as e:
         log.error(f"Error in reverse geocoding: {e}")
         raise HTTPException(status_code=500, detail="Failed to find location for the specified coordinates.")
+
+@maps_controller.post("/remove_favorite")
+async def remove_favorite(data: FavoriteRequest):
+    log.info(f"Removing restaurant {data.restaurant_id} from favorites for user {data.user_id}...")
+    
+    # Generate the favorite_id based on user_id and restaurant_id
+    favorite_id = f"{data.user_id}_{data.restaurant_id}"
+    
+    # Remove favorite from Elasticsearch
+    response = maps_service.remove_user_favorite(favorite_id)
+    
+    # Check if the response indicates that the favorite was successfully deleted
+    if response.get('deleted', 0) == 1:
+        return {"message": "Favorite removed successfully"}
+    else:
+        return {"message": "Favorite not found or could not be removed"}
+

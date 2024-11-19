@@ -255,6 +255,10 @@ def fetch_user_favorites(user_id):
     
     # Fetch user favorites from Elasticsearch
     response = es.search(index=index_name, body=query)
+    print(response)
+    print(response['hits']['total']['value'])
+    if(response['hits']['total']['value']==0):
+        return response['hits']['total']['value']
     
     # List to store restaurant details
     restaurant_details_list = []
@@ -416,3 +420,18 @@ def extract_locality_from_adr_address(adr_address):
         locality = soup.find('span', {'class': 'locality'})
         return locality.text if locality else None
     return None
+
+# Function to remove favorite from Elasticsearch
+def remove_user_favorite(favorite_id):
+    index_name = "user_favorites"
+    response = es.delete_by_query(
+        index=index_name,
+        body={
+            "query": {
+                "match": {
+                    "favorite_id": favorite_id
+                }
+            }
+        }
+    )
+    return response
