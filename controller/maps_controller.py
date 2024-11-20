@@ -21,6 +21,7 @@ class LocationRequest(BaseModel):
     location: str
     radius: int = 5000
     keyword: str = "restaurant"
+    user_id : str
 
 class CoordinatesRequest(BaseModel):
     latitude: float
@@ -54,7 +55,7 @@ async def nearby_restaurants(request: Request, data: LocationRequest):
         raise HTTPException(status_code=400, detail="Location is required.")
     
     # Fetch new nearby restaurants from Google API
-    restaurants = maps_service.find_nearby_restaurants(api_key, data.location, data.radius, data.keyword)
+    restaurants = maps_service.find_nearby_restaurants(api_key, data.location, data.radius, data.user_id,data.keyword)
     
     if restaurants:
         return restaurants

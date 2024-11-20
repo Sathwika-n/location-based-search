@@ -39,18 +39,34 @@ def get_photo_url(photo_reference, api_key, max_width=400):
     photo_url = f"{base_url}?maxwidth={max_width}&photoreference={photo_reference}&key={api_key}"
     return photo_url
 
-def find_nearby_restaurants(api_key, location, radius=5000, keyword='restaurant'):
+def find_nearby_restaurants(api_key, location, user_id, radius=5000, keyword='restaurant'):
     log.info("Inside find_nearby_restaurants")
+    user_id1 = radius
 
     # First, try to get latitude and longitude for the given location
     latitude, longitude = get_lat_long(location)
     if latitude is None or longitude is None:
         raise HTTPException(status_code=400, detail="Error while fetching latitude or longitude")
+    radius = user_id
+    user_id = user_id1
+    
+    print("latitude",latitude,"longitude",longitude,"radius",radius,"user_id",user_id)
 
     # Check if nearby restaurants are cached in Elasticsearch
     cached_restaurants = get_cached_nearby_restaurants(latitude, longitude, radius)
     if cached_restaurants:
         log.info("Found cached restaurants.")
+        
+        # Fetch user favorites
+        print("user_id",user_id1)
+        user_favorites = fetch_user_favorites(user_id1)
+        print("user_favourite ",user_favorites)
+        favorite_ids = {fav['id'] for fav in user_favorites} if user_favorites else set()
+        
+        # Add isFavorite flag to cached restaurants
+        for restaurant in cached_restaurants:
+            restaurant['isFavorite'] = restaurant['id'] in favorite_ids
+        
         return cached_restaurants
 
     # If no cached restaurants, fetch from Google API
@@ -66,15 +82,21 @@ def find_nearby_restaurants(api_key, location, radius=5000, keyword='restaurant'
         results = response_data['results']
         if results:
             restaurants = []
+            
+            # Fetch user favorites
+            user_favorites = fetch_user_favorites(user_id)
+            favorite_ids = {fav['id'] for fav in user_favorites} if user_favorites else set()
+
             for place in results:
                 restaurant_info = {
+                    'id': place.get('place_id'),
                     'name': place.get('name'),
                     'address': place.get('vicinity'),
                     'rating': place.get('rating'),
-                    'id': place.get('place_id'),
                     'latitude': latitude,
                     'longitude': longitude,
-                    'radius': radius
+                    'radius': radius,
+                    'isFavorite': place.get('place_id') in favorite_ids  # Check if this restaurant is a favorite
                 }
 
                 # Check if photos are available
@@ -99,6 +121,7 @@ def find_nearby_restaurants(api_key, location, radius=5000, keyword='restaurant'
         log.error(f"Error fetching restaurants: {response_data.get('error_message', 'Unknown error')}")
         return []
 
+
 # Helper method to fetch cached restaurants from Elasticsearch
 def get_cached_nearby_restaurants(latitude, longitude, radius):
     index_name = "restaurants"
@@ -113,6 +136,7 @@ def get_cached_nearby_restaurants(latitude, longitude, radius):
             }
         }
     }
+    print("query -> ",query)
     response = es.search(index=index_name, body=query)
     if response['hits']['total']['value'] > 0:
         restaurants = [hit['_source'] for hit in response['hits']['hits']]
@@ -272,7 +296,7 @@ def fetch_user_favorites(user_id):
         
         if details:
             restaurant_info = {
-                "restaurant_id": restaurant_id,
+                "id": restaurant_id,
                 "name": details.get("name"),
                 "location": extract_locality_from_adr_address(details.get("adr_address")),
                 "map_url": details.get("url"),
