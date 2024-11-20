@@ -272,6 +272,7 @@ def fetch_user_favorites(user_id):
         
         if details:
             restaurant_info = {
+                "restaurant_id": restaurant_id,
                 "name": details.get("name"),
                 "location": extract_locality_from_adr_address(details.get("adr_address")),
                 "map_url": details.get("url"),
