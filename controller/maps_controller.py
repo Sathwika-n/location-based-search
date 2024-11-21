@@ -210,6 +210,8 @@ async def remove_favorite(data: FavoriteRequest):
     
     # Remove favorite from Elasticsearch
     response = maps_service.remove_user_favorite(favorite_id)
+
+    print(response)
     
     # Check if the response indicates that the favorite was successfully deleted
     if response.get('deleted', 0) == 1:

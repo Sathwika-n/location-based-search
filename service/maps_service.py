@@ -448,15 +448,18 @@ def extract_locality_from_adr_address(adr_address):
 
 # Function to remove favorite from Elasticsearch
 def remove_user_favorite(favorite_id):
+    print("favorite_id",favorite_id)
     index_name = "user_favorites"
     response = es.delete_by_query(
         index=index_name,
-        body={
+        body = {
             "query": {
-                "match": {
-                    "favorite_id": favorite_id
+                "term": {
+                    "favorite_id.keyword": favorite_id  # Use .keyword for exact match
                 }
             }
         }
+
     )
+    print("response ",response)
     return response
