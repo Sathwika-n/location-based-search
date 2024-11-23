@@ -6,6 +6,7 @@ import server_properties
 import logger
 from helper import utility
 from bs4 import BeautifulSoup
+from helper import constants
 
 log = logger.get_logger()
 
@@ -128,7 +129,9 @@ def find_nearby_restaurants(api_key, location, user_id, radius=5000, keyword='re
 
 # Helper method to fetch cached restaurants from Elasticsearch
 def get_cached_nearby_restaurants(latitude, longitude, radius):
-    index_name = "restaurants"
+    #index_name = "restaurants"
+    index_name = constants.RESTAURANTS_INDEX
+
     query = {
         "query": {
             "bool": {
@@ -149,7 +152,8 @@ def get_cached_nearby_restaurants(latitude, longitude, radius):
     else:
         return []
 def store_nearby_restaurants(restaurant_data, latitude, longitude, radius):
-    index_name = "restaurants"
+    #index_name = "restaurants"
+    index_name = constants.RESTAURANTS_INDEX
     actions = []
     
     # Prepare actions for the bulk API
@@ -200,7 +204,8 @@ def get_restaurant_details(api_key, restaurant_id):
 
 def store_restaurant_details(restaurant_details):
     # Index the restaurant details in Elasticsearch
-    index_name = "restaurants_details"
+    # index_name = "restaurants_details"
+    index_name = constants.RESTAURANT_DETAILS
     restaurant_id = restaurant_details.get('place_id')
     if restaurant_id:
         es.index(index=index_name, id=restaurant_id, document=restaurant_details)
@@ -208,7 +213,8 @@ def store_restaurant_details(restaurant_details):
 
 # Get restaurant details from Elasticsearch (cached)
 def get_cached_restaurant_details(restaurant_id):
-    index_name = "restaurants_details"
+    # index_name = "restaurants_details"
+    index_name = constants.RESTAURANT_DETAILS
     query = {
         "query": {
             "match": {
@@ -224,7 +230,8 @@ def get_cached_restaurant_details(restaurant_id):
 
 # Store reviews in Elasticsearch
 def store_user_review(review_data):
-    index_name = "user_reviews"
+    #index_name = "user_reviews"
+    index_name = constants.USER_REVIEWS
     response = es.index(index=index_name, document=review_data)
     log.info(f"Stored review for user {review_data['user_id']} at restaurant {review_data['restaurant_id']}.")
     return response
@@ -261,18 +268,21 @@ def fetch_restaurant_reviews(api_key, restaurant_id):
 
 # Store restaurant reviews in Elasticsearch
 def store_restaurant_review(review_data):
-    index_name = "restaurant_reviews"
+    # index_name = "restaurant_reviews"
+    index_name = constants.RESTAURANT_REVIEWS
     response = es.index(index=index_name, document=review_data)
     return response
 
 # Store user favorites in Elasticsearch
 def store_user_favorite(favorite_data):
-    index_name = "user_favorites"
+    # index_name = "user_favorites"
+    index_name = constants.USER_FAVORITES
     response = es.index(index=index_name, document=favorite_data)
     return response
 
 def fetch_user_favorites(user_id):
-    index_name = "user_favorites"
+    # index_name = "user_favorites"
+    index_name = constants.USER_FAVORITES
     query = {
         "query": {
             "match": {
@@ -314,7 +324,8 @@ def fetch_user_favorites(user_id):
 
 
 def fetch_reviews_by_restaurant(restaurant_id):
-    index_name = "user_reviews"
+    #index_name = "user_reviews"
+    index_name = constants.USER_REVIEWS
     query = {
         "query": {
             "match": {
@@ -333,7 +344,8 @@ def fetch_reviews_by_restaurant(restaurant_id):
     
 def fetch_reviews_by_user(user_id):
     log.info("fetching user reviews...")
-    index_name = "user_reviews"
+    # index_name = "user_reviews"
+    index_name = constants.USER_REVIEWS
     query = {
         "query": {
             "match": {
@@ -453,7 +465,8 @@ def extract_locality_from_adr_address(adr_address):
 # Function to remove favorite from Elasticsearch
 def remove_user_favorite(favorite_id):
     print("favorite_id",favorite_id)
-    index_name = "user_favorites"
+    # index_name = "user_favorites"
+    index_name = constants.USER_FAVORITES
     response = es.delete_by_query(
         index=index_name,
         body = {

@@ -131,7 +131,7 @@ async def add_review(data: ReviewRequest):
     # Store review in Elasticsearch
     try:
         response = maps_service.store_user_review(review_data)
-        return {"message": "Review added successfully", "response": response}
+        return {"message": "Review added successfully"}
     except Exception as e:
         log.error(f"Error storing review: {str(e)}")
         raise HTTPException(status_code=500, detail="Error storing review in database.")
