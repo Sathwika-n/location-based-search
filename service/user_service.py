@@ -9,6 +9,7 @@ import logging
 from helper import notification
 import string
 import secrets
+from helper import constants
 
 log = logging.getLogger(__name__)
 
@@ -260,15 +261,29 @@ class UserService:
         self.es.update(index=self.index, id=res['hits']['hits'][0]['_id'], body={"doc": update_data})
 
         # Send an email with the new password
-        subject = "Your Temporary Password"
+        subject = "Your OTP for Password Reset"
         body = (f"Hello {user_data['username']},\n\n"
-                f"We've generated a temporary password for you:\n\n"
-                f"Temporary Password: {temporary_password}\n\n"
-                f"Please use this password to log in and change your password as soon as possible.\n\n"
-                f"User ID: {user_id}\n\n"
-                "If you did not request this change, please contact support immediately.")
+                f"We've received your request to reset your password for your Eats Near You account.\n\n"
+                f"Here is your OTP (One-Time Password): {temporary_password}\n\n"
+                "Please enter this OTP on the password reset page to set a new password for your account.\n\n"
+                "If you did not request this change, please contact support immediately.\n\n"
+                "Thank you,\n"
+                "The Eats Near You Team")
         notification.send_notification(subject, body, email)
 
-        return {"success": True, "message": "A temporary password has been sent to your email."}
+        return {"success": True, "message": "An OTP has been sent to your email. Please use it to reset your password."}
 
     
+    def submit_feedback(self,user_id,feedback):
+        log.info("inside main logic")
+        index = constants.FEEDBACK_INDEX
+        document = {
+            "user_id":user_id,
+            "feedback":feedback,
+            "created_at":datetime.datetime.utcnow().isoformat()
+        }
+        log.info(f"document {document}")
+        es.index(index=index, document=document)
+        log.info(f"Stored user feedback to {index} index")
+
+        return {"success": True,"message":"Thank you for your feedback! It has been submitted successfully."}

@@ -29,6 +29,10 @@ class UpdatePasswordModel(BaseModel):
 class ForgotPasswordModel(BaseModel):
     email: str
 
+class SubmitFeedback(BaseModel):
+    user_id: str
+    feedback: str
+
 
 # Dependency to use the service
 user_service = UserService()
@@ -68,6 +72,14 @@ async def update_password(request: UpdatePasswordModel):
 @user_controller.post("/forgot-password")
 async def forgot_password(request: ForgotPasswordModel):
     result = user_service.forgot_password(request.email)
+    if result.get("success"):
+        return {"message": result.get("message")}
+    else:
+        raise HTTPException(status_code=404, detail=result.get("error"))
+    
+@user_controller.post("/submit-feedback")
+async def submit_feedback(request: SubmitFeedback):
+    result = user_service.submit_feedback(request.user_id,request.feedback)
     if result.get("success"):
         return {"message": result.get("message")}
     else:
