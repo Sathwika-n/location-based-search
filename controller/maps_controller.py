@@ -19,7 +19,7 @@ maps_controller = APIRouter(prefix="/maps")
 # Request body models
 class LocationRequest(BaseModel):
     location: str
-    radius: int = 5000
+    radius: float
     keyword: str = "restaurant"
     user_id : str
 

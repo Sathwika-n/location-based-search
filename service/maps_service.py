@@ -51,9 +51,13 @@ def find_nearby_restaurants(api_key, location, user_id, radius=5000, keyword='re
     user_id = user_id1
     
     print("latitude",latitude,"longitude",longitude,"radius",radius,"user_id",user_id)
+    print("radius in miles ",radius)
+    radius_in_meters = radius * 1609.34
+    print("radius_in_meters",radius_in_meters)
+
 
     # Check if nearby restaurants are cached in Elasticsearch
-    cached_restaurants = get_cached_nearby_restaurants(latitude, longitude, radius)
+    cached_restaurants = get_cached_nearby_restaurants(latitude, longitude, radius_in_meters)
     if cached_restaurants:
         log.info("Found cached restaurants.")
         
