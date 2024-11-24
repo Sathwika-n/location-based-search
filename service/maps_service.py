@@ -1,3 +1,4 @@
+import datetime
 from fastapi import HTTPException
 import requests
 from elasticsearch import Elasticsearch
@@ -7,6 +8,8 @@ import logger
 from helper import utility
 from bs4 import BeautifulSoup
 from helper import constants
+
+from datetime import timedelta
 
 log = logger.get_logger()
 
@@ -229,9 +232,39 @@ def get_cached_restaurant_details(restaurant_id):
         return None
 
 # Store reviews in Elasticsearch
-def store_user_review(review_data):
+def store_user_review(data: dict):
     #index_name = "user_reviews"
+    print(data)
+    user_id = data["user_id"]
+    print(user_id)
     index_name = constants.USER_REVIEWS
+    query = {
+            "query": {
+                "term": {
+                    "user_id":user_id
+                }
+            }
+        }
+
+    res = es.search(index=constants.USER_INDEX, body=query)
+    log.info("Fetched user info from index...")
+
+    if res['hits']['total']['value'] == 0:
+        return {"success": False, "error": "User Doesn't Exist"}
+
+    user_data = res['hits']['hits'][0]['_source']
+
+    # Create review data structure
+    review_data = {
+        "review_id": f"{user_id}_{data["restaurant_id"]}",
+        "user_id": user_id,
+        "restaurant_id": data["restaurant_id"],
+        "rating": data["rating"],
+        "review_text": data["review_text"],
+        "created_at": datetime.datetime.utcnow().isoformat(),
+        "author_name":user_data['username']
+    }
+    print(review_data)
     response = es.index(index=index_name, document=review_data)
     log.info(f"Stored review for user {review_data['user_id']} at restaurant {review_data['restaurant_id']}.")
     return response
@@ -381,6 +414,7 @@ def get_reviews_with_restaurant_details(restaurant_id: str, api_key: str):
     # Fetch reviews based on the restaurant ID
     reviews = fetch_reviews_by_restaurant(restaurant_id)
     
+    print("reviews fetched for restaurant_id ",reviews)
     if reviews:
         # Fetch restaurant details
         restaurant_details = get_restaurant_details(api_key, restaurant_id)
@@ -402,6 +436,7 @@ def get_reviews_with_restaurant_details(restaurant_id: str, api_key: str):
                     "rating": review.get('rating'),
                     "created_at": review.get('created_at'),
                     "user_id":review.get('user_id'),
+                    "author_name":review.get('author_name')
                     #"locality": locality
                 }
                 for review in reviews
@@ -419,6 +454,7 @@ def get_reviews_with_restaurant_details_for_user_id(user_id: str, api_key: str):
     
     # Fetch reviews based on the user ID
     reviews = fetch_reviews_by_user(user_id)
+    print("reviews fetched from db",reviews)
     
     if reviews:
         # Get a unique list of restaurant IDs from the reviews
@@ -445,7 +481,8 @@ def get_reviews_with_restaurant_details_for_user_id(user_id: str, api_key: str):
                             "review_text": review.get('review_text'),
                             "rating": review.get('rating'),
                             "created_at": review.get('created_at'),
-                            "user_id": review.get('user_id')
+                            "user_id": review.get('user_id'),
+                            "author_name":review.get('author_name')
                         })
                         
         return enhanced_reviews

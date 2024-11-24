@@ -117,6 +117,7 @@ async def add_review(data: ReviewRequest):
     # Validate review text (optional field, but can be useful)
     if not data.review_text:
         raise HTTPException(status_code=400, detail="Review text is required.")
+    print(f"UTC Time: {datetime.datetime.utcnow().isoformat()}")
     
     # Create review data structure
     review_data = {
@@ -127,6 +128,7 @@ async def add_review(data: ReviewRequest):
         "review_text": data.review_text,
         "created_at": datetime.datetime.utcnow().isoformat(),
     }
+
     
     # Store review in Elasticsearch
     try:
