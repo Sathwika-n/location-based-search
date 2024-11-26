@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional
 from service.user_service import UserService
-import server_properties
 
 # Create router
 user_controller = APIRouter()
@@ -106,13 +105,6 @@ async def google_auth(request: GoogleLoginModel):
         }
     else:
         raise HTTPException(status_code=400, detail=result.get("error"))
-
-@user_controller.get("/get-config")
-async def get_config():
-    return {
-        "google_client_id": server_properties.VITE_GOOGLE_CLIENT_ID,
-        "google_api_key": server_properties.GOOGLE_API_KEY
-    }
 
     
 

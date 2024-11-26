@@ -19,7 +19,6 @@ ES_USER = get_env_variable('ES_USERNAME')
 ES_PASSWORD = get_env_variable('ES_PASSWORD')
 SECRET_KEY = get_env_variable('SECRET_KEY')
 ALGORITHM = get_env_variable('ALGORITHM')
-VITE_GOOGLE_CLIENT_ID = get_env_variable('VITE_GOOGLE_CLIENT_ID')
 # Email configuration
 MAIL_HOST = 'smtp.gmail.com'
 MAIL_PORT = 587
