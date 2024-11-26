@@ -306,11 +306,17 @@ class UserService:
         if res['hits']['total']['value'] > 0:
             # User exists, process login
             user_data = res['hits']['hits'][0]['_source']
-            
+
+            result = {
+            "user_id":user_data["user_id"],
+            "email":user_data["email"],
+            "username":user_data["username"]
+        }
+
             return {
                 "success": True,
                 "message": "Login successful via Google",
-                "user_id": user_data['user_id']
+                "result": result
             }
 
         # User does not exist, process signup
@@ -332,9 +338,12 @@ class UserService:
                 "Thank you for signing up with Google! We're excited to have you with us.")
         notification.send_notification(subject, body, email)
 
+        result = {
+            "user_id":user_data["user_id"]
+        }
     
         return {
             "success": True,
             "message": "Signup successful via Google",
-            "user_id": user_data["user_id"]
+            "result": result
         }

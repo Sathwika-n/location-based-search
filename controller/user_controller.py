@@ -101,7 +101,7 @@ async def google_auth(request: GoogleLoginModel):
     if result.get("success"):
         return {
             "message": result.get("message"),
-            "user_id": result.get("user_id")
+            "result": result.get("result")
         }
     else:
         raise HTTPException(status_code=400, detail=result.get("error"))
