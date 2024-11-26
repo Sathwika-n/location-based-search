@@ -287,3 +287,54 @@ class UserService:
         log.info(f"Stored user feedback to {index} index")
 
         return {"success": True,"message":"Thank you for your feedback! It has been submitted successfully."}
+
+    def google_auth(self, email: str, sub: str, username: str):
+        """
+        Handle Google Login or Signup.
+        """
+        email = email.lower()
+        # Check if the user already exists
+        query = {
+            "query": {
+                "term": {
+                    "email": email
+                }
+            }
+        }
+        res = self.es.search(index=self.index, body=query)
+
+        if res['hits']['total']['value'] > 0:
+            # User exists, process login
+            user_data = res['hits']['hits'][0]['_source']
+            
+            return {
+                "success": True,
+                "message": "Login successful via Google",
+                "user_id": user_data['user_id']
+            }
+
+        # User does not exist, process signup
+        hashed_password = hash_password(sub)  # Hash the 'sub' as the password
+        user_data = {
+            "user_id": str(uuid.uuid4()),  # Generate a unique user ID
+            "email": email,
+            "username": username,
+            "password": hashed_password,
+            "created_at": datetime.datetime.utcnow().isoformat()
+        }
+
+        # Store the user in Elasticsearch
+        self.es.index(index=self.index, document=user_data)
+
+        # Send a welcome email
+        subject = "Welcome! You Signed Up with Google!"
+        body = (f"Hello {username},\n\n"
+                "Thank you for signing up with Google! We're excited to have you with us.")
+        notification.send_notification(subject, body, email)
+
+    
+        return {
+            "success": True,
+            "message": "Signup successful via Google",
+            "user_id": user_data["user_id"]
+        }

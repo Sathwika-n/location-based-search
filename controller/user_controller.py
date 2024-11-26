@@ -33,6 +33,12 @@ class SubmitFeedback(BaseModel):
     user_id: str
     feedback: str
 
+class GoogleLoginModel(BaseModel):
+    email: str
+    sub: str  # Google's unique identifier for the user
+    username: str
+
+
 
 # Dependency to use the service
 user_service = UserService()
@@ -84,3 +90,18 @@ async def submit_feedback(request: SubmitFeedback):
         return {"message": result.get("message")}
     else:
         raise HTTPException(status_code=404, detail=result.get("error"))
+
+@user_controller.post("/google-auth")
+async def google_auth(request: GoogleLoginModel):
+    """
+    Handle Google Login or Signup.
+    """
+    result = user_service.google_auth(request.email, request.sub, request.username)
+    
+    if result.get("success"):
+        return {
+            "message": result.get("message"),
+            "user_id": result.get("user_id")
+        }
+    else:
+        raise HTTPException(status_code=400, detail=result.get("error"))
