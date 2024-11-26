@@ -9,7 +9,7 @@ def get_env_variable(var_name):
     except KeyError:
         error_msg = "Set the %s environment variable" % var_name
         raise Exception(error_msg)
-
+print("loaded variables ")
 
 GOOGLE_API_KEY = get_env_variable('GOOGLE_API_KEY')
 GOOGLE_PLACES_API_BASE_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
@@ -19,6 +19,7 @@ ES_USER = get_env_variable('ES_USERNAME')
 ES_PASSWORD = get_env_variable('ES_PASSWORD')
 SECRET_KEY = get_env_variable('SECRET_KEY')
 ALGORITHM = get_env_variable('ALGORITHM')
+VITE_GOOGLE_CLIENT_ID = get_env_variable('VITE_GOOGLE_CLIENT_ID')
 # Email configuration
 MAIL_HOST = 'smtp.gmail.com'
 MAIL_PORT = 587
