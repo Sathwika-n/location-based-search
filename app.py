@@ -9,7 +9,7 @@ app = FastAPI()
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # You can specify allowed origins here
+    allow_origins=["http://localhost:5173","https://eatsnearyou-cne2fngbc6fkc7ew.centralus-01.azurewebsites.net"],  # You can specify allowed origins here
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
