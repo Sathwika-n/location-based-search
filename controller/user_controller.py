@@ -105,3 +105,5 @@ async def google_auth(request: GoogleLoginModel):
         }
     else:
         raise HTTPException(status_code=400, detail=result.get("error"))
+    
+
