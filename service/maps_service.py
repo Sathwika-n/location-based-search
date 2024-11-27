@@ -242,20 +242,16 @@ def get_cached_restaurant_details(restaurant_id):
     else:
         return None
 
-# Store reviews in Elasticsearch
-def store_user_review(data: dict):
-    #index_name = "user_reviews"
-    print(data)
-    user_id = data["user_id"]
-    print(user_id)
+def store_user_review(user_id,restaurant_id,rating,review_text):
+
     index_name = constants.USER_REVIEWS
     query = {
-            "query": {
-                "term": {
-                    "user_id":user_id
-                }
+        "query": {
+            "term": {
+                "user_id": user_id
             }
         }
+    }
 
     res = es.search(index=constants.USER_INDEX, body=query)
     log.info("Fetched user info from index...")
@@ -267,13 +263,13 @@ def store_user_review(data: dict):
 
     # Create review data structure
     review_data = {
-        "review_id": f"{user_id}_{data["restaurant_id"]}",
+        "review_id": f"{user_id}_{restaurant_id}",
         "user_id": user_id,
-        "restaurant_id": data["restaurant_id"],
-        "rating": data["rating"],
-        "review_text": data["review_text"],
+        "restaurant_id": restaurant_id,
+        "rating": rating,
+        "review_text": review_text,
         "created_at": datetime.datetime.utcnow().isoformat(),
-        "author_name":user_data['username']
+        "author_name": user_data['username']
     }
     print(review_data)
     response = es.index(index=index_name, document=review_data)

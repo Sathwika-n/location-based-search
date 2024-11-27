@@ -27,11 +27,6 @@ class CoordinatesRequest(BaseModel):
     latitude: float
     longitude: float
 
-class ReviewRequest(BaseModel):
-    user_id: str
-    restaurant_id: str
-    rating: float
-    review_text: str
 
 class FavoriteRequest(BaseModel):
     user_id: str
@@ -42,7 +37,7 @@ class ReviewRequest(BaseModel):
     user_id: str
     restaurant_id: str
     rating: float
-    review_text: str
+    review_text: Optional[str] = None
 
 class ReviewQueryRequest(BaseModel):
     restaurant_id: Optional[str] = None
@@ -114,13 +109,11 @@ async def add_review(data: ReviewRequest):
     if data.rating < 1 or data.rating > 5:
         raise HTTPException(status_code=400, detail="Rating must be between 1 and 5.")
     
-    # Validate review text (optional field, but can be useful)
-    if not data.review_text:
-        raise HTTPException(status_code=400, detail="Review text is required.")
     print(f"UTC Time: {datetime.datetime.utcnow().isoformat()}")
     
     try:
-        response = maps_service.store_user_review(data.dict)
+        print("data",data)
+        response = maps_service.store_user_review(data.user_id,data.restaurant_id,data.rating,data.review_text)
         return {"message": "Review added successfully"}
     except Exception as e:
         log.error(f"Error storing review: {str(e)}")
