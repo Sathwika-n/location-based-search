@@ -181,13 +181,18 @@ def store_nearby_restaurants(restaurant_data, latitude, longitude, radius):
     else:
         log.info("No restaurants to index.")
 
-def get_restaurant_details(api_key, restaurant_id):
+def get_restaurant_details(api_key, restaurant_id, user_id=None):
     # First, check if restaurant details are already cached in Elasticsearch
     cached_details = get_cached_restaurant_details(restaurant_id)
     if cached_details:
         log.info(f"Found cached details for restaurant ID: {restaurant_id}")
+        # Add isFavorite flag if user_id is provided
+        if user_id:
+            user_favorites = fetch_user_favorites(user_id)
+            favorite_ids = {fav['id'] for fav in user_favorites} if user_favorites else set()
+            cached_details['isFavorite'] = restaurant_id in favorite_ids
         return cached_details
-    
+
     # If not cached, fetch the details from Google Places API
     log.info(f"Fetching details for restaurant ID: {restaurant_id} from Google API...")
     url = f"https://maps.googleapis.com/maps/api/place/details/json?place_id={restaurant_id}&key={api_key}"
@@ -195,10 +200,16 @@ def get_restaurant_details(api_key, restaurant_id):
 
     if response.status_code == 200:
         details = response.json().get('result', {})
-        
+
         # Store the fetched details in Elasticsearch for future use
         store_restaurant_details(details)
-        
+
+        # Add isFavorite flag if user_id is provided
+        if user_id:
+            user_favorites = fetch_user_favorites(user_id)
+            favorite_ids = {fav['id'] for fav in user_favorites} if user_favorites else set()
+            details['isFavorite'] = restaurant_id in favorite_ids
+
         return details
     else:
         log.error(f"Error fetching details for restaurant ID {restaurant_id}: {response.content}")

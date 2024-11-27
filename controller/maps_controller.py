@@ -63,11 +63,11 @@ async def nearby_restaurants(request: Request, data: LocationRequest):
         return []
 
 @maps_controller.get("/restaurant_details/{restaurant_id}")
-async def restaurant_details(restaurant_id: str):
+async def restaurant_details(restaurant_id: str, user_id: Optional[str] = None):
     log.info(f"Fetching details for restaurant ID: {restaurant_id}...")
     
     # Fetch restaurant details from the service
-    details = maps_service.get_restaurant_details(api_key, restaurant_id)
+    details = maps_service.get_restaurant_details(api_key, restaurant_id, user_id)
     
     return {'details': details}
 @maps_controller.get("/restaurant_reviews/{restaurant_id}")
@@ -119,20 +119,8 @@ async def add_review(data: ReviewRequest):
         raise HTTPException(status_code=400, detail="Review text is required.")
     print(f"UTC Time: {datetime.datetime.utcnow().isoformat()}")
     
-    # Create review data structure
-    review_data = {
-        "review_id": f"{data.user_id}_{data.restaurant_id}",
-        "user_id": data.user_id,
-        "restaurant_id": data.restaurant_id,
-        "rating": data.rating,
-        "review_text": data.review_text,
-        "created_at": datetime.datetime.utcnow().isoformat(),
-    }
-
-    
-    # Store review in Elasticsearch
     try:
-        response = maps_service.store_user_review(review_data)
+        response = maps_service.store_user_review(data.dict)
         return {"message": "Review added successfully"}
     except Exception as e:
         log.error(f"Error storing review: {str(e)}")
