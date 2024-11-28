@@ -83,6 +83,7 @@ class UserService:
         }
 
         res = self.es.search(index=self.index, body=query)
+        print("res",res)
 
         if res['hits']['total']['value'] > 0:
             return {"success": False, "error": "User already exists"}
