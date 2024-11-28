@@ -80,7 +80,8 @@ def find_nearby_restaurants(api_key, location, user_id, radius=5000, keyword='re
     # If no cached restaurants, fetch from Google API
     location_str = f"{latitude},{longitude}"
     log.info(f"Fetching nearby restaurants from Google API near {location_str}...")
-    url = utility.build_places_url(location_str, radius, keyword)
+    url = utility.build_places_url(location_str, radius_in_meters, keyword)
+    #log.info(f"build url -> {url}")
     response = requests.get(url, verify=False)
 
     log.info("Response Status Code: %s", response.status_code)

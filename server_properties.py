@@ -8,12 +8,12 @@ log = logger.get_logger()
 
 def get_env_variable(var_name):
     try:
-        log.info(f"{var_name}: {os.environ[var_name]}")
+        #log.info(f"{var_name}: {os.environ[var_name]}")
         return os.environ[var_name]
     except KeyError:
         error_msg = "Set the %s environment variable" % var_name
         raise Exception(error_msg)
-print("loaded variables ")
+log.info("loaded variables successfully ")
 
 GOOGLE_API_KEY = get_env_variable('GOOGLE_API_KEY')
 GOOGLE_PLACES_API_BASE_URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
