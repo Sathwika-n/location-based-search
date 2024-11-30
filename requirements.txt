@@ -11,4 +11,5 @@ bcrypt
 PyJWT
 gunicorn
 beautifulsoup4
+pytz
 

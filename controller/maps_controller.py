@@ -8,7 +8,7 @@ from service import maps_service
 import server_properties
 import logger
 from datetime import timedelta
-
+import pytz
 
 log = logger.get_logger()
 
@@ -110,6 +110,12 @@ async def add_review(data: ReviewRequest):
         raise HTTPException(status_code=400, detail="Rating must be between 1 and 5.")
     
     print(f"UTC Time: {datetime.datetime.utcnow().isoformat()}")
+    utc_now = datetime.datetime.utcnow()
+    print(utc_now)
+    new_york_tz = pytz.timezone("America/New_York")
+    ny_time = pytz.utc.localize(utc_now).astimezone(new_york_tz)
+    print(f"New York Time: {ny_time}")
+    print(f"new york time in ISO format {ny_time.isoformat()}")
     
     try:
         print("data",data)

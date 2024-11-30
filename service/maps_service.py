@@ -8,6 +8,7 @@ import logger
 from helper import utility
 from bs4 import BeautifulSoup
 from helper import constants
+import pytz
 
 from datetime import timedelta
 
@@ -244,6 +245,7 @@ def get_cached_restaurant_details(restaurant_id):
         return None
 
 def store_user_review(user_id,restaurant_id,rating,review_text):
+    log.info("Inside store user review...")
 
     index_name = constants.USER_REVIEWS
     query = {
@@ -262,6 +264,13 @@ def store_user_review(user_id,restaurant_id,rating,review_text):
 
     user_data = res['hits']['hits'][0]['_source']
 
+    # Convert UTC time to New York timezone
+    utc_now = datetime.datetime.utcnow()
+    print(utc_now)
+    new_york_tz = pytz.timezone("America/New_York")
+    ny_time = pytz.utc.localize(utc_now).astimezone(new_york_tz)
+    print(f"New York Time: {ny_time}")
+
     # Create review data structure
     review_data = {
         "review_id": f"{user_id}_{restaurant_id}",
@@ -269,7 +278,8 @@ def store_user_review(user_id,restaurant_id,rating,review_text):
         "restaurant_id": restaurant_id,
         "rating": rating,
         "review_text": review_text,
-        "created_at": datetime.datetime.utcnow().isoformat(),
+        #"created_at": datetime.datetime.utcnow().isoformat(),
+        "created_at": ny_time.isoformat(),  # Store in ISO format with New York timezone
         "author_name": user_data['username']
     }
     print(review_data)
