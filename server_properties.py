@@ -8,7 +8,7 @@ log = logger.get_logger()
 
 def get_env_variable(var_name):
     try:
-        #log.info(f"{var_name}: {os.environ[var_name]}")
+        log.info(f"{var_name}: {os.environ[var_name]}")
         return os.environ[var_name]
     except KeyError:
         error_msg = "Set the %s environment variable" % var_name
